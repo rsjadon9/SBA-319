@@ -2,12 +2,11 @@
   "name": "319-node-express-mongodb",
   "version": "1.0.0",
   "description": "",
-  "main": "server.mjs",
-  "type": "module",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.mjs",
-    "dev": "nodemon server.mjs"
+    "start": "app.js",
+    "dev": "nodemon server.js"
   },
   "keywords": [],
   "author": "",
