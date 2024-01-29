@@ -3,12 +3,13 @@ const { MongoClient } = require('mongodb');
 require('dotenv').config();
 
 const uri = process.env.MONGODB_URI;
-const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 let db;
 
 async function connectToDatabase() {
     try {
+        const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+
         await client.connect();
         console.log('Connected to MongoDB');
         db = client.db();
