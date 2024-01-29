@@ -13,6 +13,8 @@ async function connectToDatabase() {
         await client.connect();
         console.log('Connected to MongoDB');
         db = client.db();
+        await createIndexes(db);
+
         await seedDatabase(db); // Seed the database with sample data
     } catch (error) {
         console.error('MongoDB connection error:', error);
@@ -22,6 +24,18 @@ async function connectToDatabase() {
 
 function getDatabase() {
     return db;
+}
+
+
+async function createIndexes(db) {
+    try {
+        // Create index on the 'username' field with unique constraint
+        await db.collection('users').createIndex({ username: 1 }, { unique: true });
+
+        console.log('Indexes created successfully');
+    } catch (error) {
+        console.error('Error creating indexes:', error);
+    }
 }
 
 // Function to seed the database with sample data
