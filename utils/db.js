@@ -13,7 +13,7 @@ async function connectToDatabase() {
         await client.connect();
         console.log('Connected to MongoDB');
         db = client.db();
-        await createIndexes(db);
+        await setupDatabase(db);
 
         await seedDatabase(db); // Seed the database with sample data
     } catch (error) {
@@ -26,15 +26,110 @@ function getDatabase() {
     return db;
 }
 
-
-async function createIndexes(db) {
+async function setupDatabase(db) {
     try {
-        // Create index on the 'username' field with unique constraint
+        // Create index on the 'username' field with unique constraint for the 'users' collection
+        // COMMENT: Creating a unique index on 'username' for efficient lookups and to enforce uniqueness.
         await db.collection('users').createIndex({ username: 1 }, { unique: true });
 
-        console.log('Indexes created successfully');
+        // Define validation rule for the 'users' collection
+        const usersValidationRule = {
+            $jsonSchema: {
+                bsonType: 'object',
+                required: ['username', 'email', 'age'],
+                properties: {
+                    username: {
+                        bsonType: 'string',
+                        description: 'Username must be a string and is required',
+                    },
+                    email: {
+                        bsonType: 'string',
+                        description: 'Email must be a string and is required',
+                    },
+                    age: {
+                        bsonType: 'int',
+                        minimum: 0,
+                        description: 'Age must be a non-negative integer',
+                    },
+                    // Add more properties and validation rules as needed
+                },
+            },
+        };
+
+        // Apply validation rule to the 'users' collection
+        await db.command({
+            collMod: 'users',
+            validator: usersValidationRule,
+            validationLevel: 'strict',
+        });
+
+        // Create index on the 'title' field for the 'posts' collection
+        // COMMENT: Creating a text index on 'title' for efficient searches on post titles.
+        await db.collection('posts').createIndex({ title: 'text' });
+
+        // Define validation rule for the 'posts' collection
+        const postsValidationRule = {
+            $jsonSchema: {
+                bsonType: 'object',
+                required: ['title', 'content'],
+                properties: {
+                    title: {
+                        bsonType: 'string',
+                        description: 'Title must be a string and is required',
+                    },
+                    content: {
+                        bsonType: 'string',
+                        description: 'Content must be a string and is required',
+                    },
+                    // Add more properties and validation rules as needed
+                },
+            },
+        };
+
+        // Apply validation rule to the 'posts' collection
+        await db.command({
+            collMod: 'posts',
+            validator: postsValidationRule,
+            validationLevel: 'strict',
+        });
+
+        // Create index on the 'text' field for the 'comments' collection
+        // COMMENT: Creating a text index on 'text' for efficient searches on comment text.
+        await db.collection('comments').createIndex({ text: 'text' });
+
+        // Define validation rule for the 'comments' collection
+        const commentsValidationRule = {
+            $jsonSchema: {
+                bsonType: 'object',
+                required: ['text', 'userId', 'postId'],
+                properties: {
+                    text: {
+                        bsonType: 'string',
+                        description: 'Text must be a string and is required',
+                    },
+                    userId: {
+                        bsonType: 'string',
+                        description: 'User ID must be a string and is required',
+                    },
+                    postId: {
+                        bsonType: 'string',
+                        description: 'Post ID must be a string and is required',
+                    },
+                    // Add more properties and validation rules as needed
+                },
+            },
+        };
+
+        // Apply validation rule to the 'comments' collection
+        await db.command({
+            collMod: 'comments',
+            validator: commentsValidationRule,
+            validationLevel: 'strict',
+        });
+
+        console.log('Indexes and validation rules created successfully');
     } catch (error) {
-        console.error('Error creating indexes:', error);
+        console.error('Error setting up database:', error);
     }
 }
 
